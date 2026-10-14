@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- Viewport optimized for Samsung Galaxy Tablets & S-Pen touch rejection -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>K-3 Teacher Demonstration Workspace</title>
+
+  <!-- Android / Samsung Internet Standalone & PWA Meta Tags -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#090d16">
+  <meta name="application-name" content="K-3 Workspace">
+
+  <!-- Embedded Data-URI Web App Manifest for Samsung "Install App" / "Add to Home Screen" -->
+  <link rel="manifest" href="data:application/manifest+json;utf-8,%7B%22name%22%3A%22K-3%20Teacher%20Demonstration%20Workspace%22%2C%22short_name%22%3A%22K-3%20Workspace%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22fullscreen%22%2C%22orientation%22%3A%22landscape%22%2C%22background_color%22%3A%22%23090d16%22%2C%22theme_color%22%3A%22%23090d16%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%3Butf8%2C%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%20100%20100'%3E%3Crect%20width%3D'100'%20height%3D'100'%20rx%3D'22'%20fill%3D'%234f46e5'%2F%3E%3Ctext%20x%3D'50'%20y%3D'65'%20font-size%3D'54'%20text-anchor%3D'middle'%20fill%3D'white'%3E%E2%98%85%3C%2Ftext%3E%3C%2Fsvg%3E%22%2C%22sizes%22%3A%22192x192%20512x512%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Phosphor Icons CDN -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <style>
+    :root {
+      --sat: env(safe-area-inset-top, 0px);
+      --sab: env(safe-area-inset-bottom, 0px);
+      --sal: env(safe-area-inset-left, 0px);
+      --sar: env(safe-area-inset-right, 0px);
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      touch-action: manipulation;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
+      background-color: #090d16;
+      color: #0f172a;
+    }
+
+    #appRoot {
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      padding-top: var(--sat);
+      padding-bottom: var(--sab);
+      padding-left: var(--sal);
+      padding-right: var(--sar);
+      background-color: #090d16;
+    }
+
+    /* Tactile Tablet Buttons with Active Scaling */
+    .tablet-touch-btn {
+      touch-action: manipulation;
+      transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s, box-shadow 0.15s;
+    }
+    .tablet-touch-btn:active {
+      transform: scale(0.93);
+    }
+
+    /* S-Pen / Stylus Optimized Canvas */
+    #drawingCanvas {
+      touch-action: none;
+      cursor: crosshair;
+      display: block;
+      width: 100%;
+      height: 100%;
+      background-color: #ffffff;
+    }
+
+    /* Base Ten Manipulatives */
+    .flat-100 {
+      width: 54px;
+      height: 54px;
+      background-color: #3b82f6;
+      border: 2px solid #1d4ed8;
+      border-radius: 6px;
+      box-shadow: 0 2px 5px rgba(30, 64, 175, 0.25);
+      background-image: 
+        linear-gradient(to right, rgba(255,255,255,0.3) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.3) 1px, transparent 1px);
+      background-size: 5.4px 5.4px;
+    }
+    .rod-10 {
+      width: 18px;
+      height: 64px;
+      background-color: #10b981;
+      border: 2px solid #059669;
+      border-radius: 4px;
+      box-shadow: 0 2px 5px rgba(5, 150, 105, 0.25);
+      background-image: linear-gradient(to bottom, rgba(255,255,255,0.35) 1px, transparent 1px);
+      background-size: 100% 6.4px;
+    }
+    .unit-1 {
+      width: 19px;
+      height: 19px;
+      background-color: #f59e0b;
+      border: 2px solid #d97706;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(217, 119, 6, 0.25);
+    }
+
+    /* Ten-Frame Interactive Tokens */
+    .ten-cell {
+      aspect-ratio: 1 / 1;
+      background: #ffffff;
+      border: 2px solid #94a3b8;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.1s, border-color 0.15s;
+    }
+    .ten-cell:active {
+      transform: scale(0.92);
+      border-color: #4f46e5;
+    }
+    .counter-token {
+      width: 72%;
+      height: 72%;
+      border-radius: 50%;
+      box-shadow: inset 0 -3px 4px rgba(0,0,0,0.25), 0 3px 6px rgba(0,0,0,0.15);
+      animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.3); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .counter-red { background: radial-gradient(circle at 35% 35%, #f87171, #dc2626); border: 2px solid #b91c1c; }
+    .counter-yellow { background: radial-gradient(circle at 35% 35%, #fde047, #eab308); border: 2px solid #ca8a04; }
+
+    /* Blending Sweep Animation */
+    .car-slider-track {
+      position: relative;
+      height: 58px;
+      border-bottom: 4px dashed #94a3b8;
+    }
+    #blendingCar {
+      position: absolute;
+      bottom: 4px;
+      left: 0;
+      will-change: transform;
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.45);
+    }
+
+    /* Hide scrollbars for clean tablet UI */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Modal Animation */
+    .sheet-up {
+      animation: slideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(24px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-900 select-none antialiased">
+
+  <div id="appRoot">
+    <!-- TOP TOOLBAR: BRAND & TABLET CONTROLS -->
+    <header class="bg-slate-900 border-b border-slate-800 text-slate-100 px-3 sm:px-4 py-2 flex items-center justify-between shrink-0 z-30">
+      
+      <!-- Brand & Status -->
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-indigo-600 to-emerald-400 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-600/30">
+          <i class="ph-bold ph-chalkboard-teacher"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-sm sm:text-base font-black tracking-wide text-white">K-3 Demonstration Tablet Workspace</h1>
+            <span class="hidden lg:inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              Samsung Galaxy S-Pen Ready
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-400 hidden sm:block">Primary Lines • Math Blocks & Ten-Frames • Sound Mapping • UFLI Deck</p>
+        </div>
+      </div>
+
+      <!-- Quick Action Utility & Tablet Actions -->
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <!-- 1. DIRECT ONE-TAP DOWNLOAD APP (.HTML) BUTTON -->
+        <button onclick="downloadSelfAppFile()" class="tablet-touch-btn flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/30 border border-emerald-400/40" title="Download this workspace as a standalone .html file onto your tablet">
+          <i class="ph-bold ph-download-simple text-sm sm:text-base"></i>
+          <span class="hidden sm:inline">Save App (.html)</span>
+          <span class="sm:hidden">Save</span>
+        </button>
+
+        <!-- 2. NATIVE FULLSCREEN TOGGLE BUTTON (Android / Samsung Internet / Chrome) -->
+        <button id="fullscreenToggleBtn" onclick="toggleAndroidFullscreen()" class="tablet-touch-btn flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30" title="Toggle Fullscreen Mode">
+          <i id="fullscreenIcon" class="ph-bold ph-arrows-out-simple text-sm"></i>
+          <span id="fullscreenLabel" class="hidden sm:inline">Fullscreen</span>
+        </button>
+
+        <!-- 3. Speech Audio Pronunciation Toggle -->
+        <button id="audioSpeechToggleBtn" onclick="toggleSpeechAudio()" class="tablet-touch-btn flex items-center gap-1 px-2.5 sm:px-3 py-2 rounded-xl text-xs font-bold bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700" title="Toggle voice audio">
+          <i id="audioSpeechIcon" class="ph-fill ph-speaker-high text-emerald-400 text-sm"></i>
+          <span class="hidden md:inline text-slate-400">Voice:</span>
+          <span id="audioSpeechLabel" class="text-emerald-300 font-extrabold text-[11px]">ON</span>
+        </button>
+
+        <!-- 4. Install / Tablet Help Dialog -->
+        <button onclick="openInstallHelpModal()" class="tablet-touch-btn w-9 h-9 rounded-xl flex items-center justify-center bg-slate-800 border border-slate-700 text-slate-300 hover:text-white" title="Samsung Installation Tips">
+          <i class="ph-bold ph-device-tablet text-base"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- NAVIGATION TABS -->
+    <nav class="bg-slate-900/95 backdrop-blur-md px-3 pt-1.5 pb-2 border-b border-slate-800 flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
+      <button onclick="switchTab('handwriting', this)" class="nav-tab active flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl font-black text-xs sm:text-sm text-white bg-indigo-600 shadow-md shadow-indigo-600/30 whitespace-nowrap tablet-touch-btn">
+        <i class="ph-bold ph-pen-nib text-base"></i>
+        <span>1. Handwriting Canvas</span>
+      </button>
+
+      <button onclick="switchTab('math', this)" class="nav-tab flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl font-bold text-xs sm:text-sm text-slate-300 bg-slate-800/80 hover:bg-slate-800 hover:text-white border border-slate-700/60 whitespace-nowrap tablet-touch-btn">
+        <i class="ph-bold ph-calculator text-base text-blue-400"></i>
+        <span>2. Place Value & Frames</span>
+      </button>
+
+      <button onclick="switchTab('mapping', this)" class="nav-tab flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl font-bold text-xs sm:text-sm text-slate-300 bg-slate-800/80 hover:bg-slate-800 hover:text-white border border-slate-700/60 whitespace-nowrap tablet-touch-btn">
+        <i class="ph-bold ph-heart text-base text-rose-400"></i>
+        <span>3. Say-Tap-Map-Write</span>
+      </button>
+
+      <button onclick="switchTab('blending', this)" class="nav-tab flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl font-bold text-xs sm:text-sm text-slate-300 bg-slate-800/80 hover:bg-slate-800 hover:text-white border border-slate-700/60 whitespace-nowrap tablet-touch-btn">
+        <i class="ph-bold ph-car text-base text-amber-400"></i>
+        <span>4. UFLI Blending Deck</span>
+      </button>
+    </nav>
+
+    <!-- MAIN VIEW CONTAINER -->
+    <main class="flex-1 w-full bg-slate-100 overflow-hidden relative">
+
+      <!-- ======================================================== -->
+      <!-- TAB 1: S-PEN & TOUCH HANDWRITING CANVAS -->
+      <!-- ======================================================== -->
+      <section id="panel-handwriting" class="view-panel w-full h-full p-2 sm:p-3 flex flex-col gap-2 relative">
+        <!-- Floating Canvas Toolbar -->
+        <div class="bg-white shadow-sm border border-slate-200 rounded-2xl p-2 sm:px-3 flex flex-wrap items-center justify-between gap-2 shrink-0">
+          
+          <!-- Line Guide Modes -->
+          <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            <span class="text-[11px] font-black uppercase text-slate-400 tracking-wider hidden sm:inline mr-1">Guides:</span>
+            <button onclick="setGuideMode('k1', this)" class="guide-mode-btn active px-3 py-1.5 rounded-lg text-xs font-black bg-indigo-100 text-indigo-700 border border-indigo-300 tablet-touch-btn">
+              K-1 Wide
+            </button>
+            <button onclick="setGuideMode('g23', this)" class="guide-mode-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200 tablet-touch-btn">
+              Gr 2-3 Standard
+            </button>
+            <button onclick="setGuideMode('grid', this)" class="guide-mode-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200 tablet-touch-btn">
+              Dot Grid
+            </button>
+            <button onclick="setGuideMode('blank', this)" class="guide-mode-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200 tablet-touch-btn">
+              Blank
+            </button>
+          </div>
+
+          <!-- Color Swatches & Highlighter -->
+          <div class="flex items-center gap-2">
+            <button onclick="setPenColor('#0f172a', this)" class="ink-swatch w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-900 ring-2 ring-offset-2 ring-indigo-600 tablet-touch-btn" title="Black Ink"></button>
+            <button onclick="setPenColor('#2563eb', this)" class="ink-swatch w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-600 tablet-touch-btn" title="Blue Ink"></button>
+            <button onclick="setPenColor('#dc2626', this)" class="ink-swatch w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-red-600 tablet-touch-btn" title="Red Ink"></button>
+            <button onclick="setPenColor('#16a34a', this)" class="ink-swatch w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-emerald-600 tablet-touch-btn" title="Green Ink"></button>
+            <button onclick="setPenColor('rgba(250, 204, 21, 0.42)', this, true)" class="ink-swatch px-2.5 py-1 rounded-lg text-xs font-extrabold bg-amber-200 text-amber-900 border border-amber-300 tablet-touch-btn" title="Highlighter">
+              🖍️ Hilite
+            </button>
+            <button onclick="setEraserMode(this)" class="ink-swatch px-2.5 py-1 rounded-lg text-xs font-extrabold bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 tablet-touch-btn" title="Eraser">
+              <i class="ph-bold ph-eraser"></i> Erase
+            </button>
+          </div>
+
+          <!-- History & Line Size Controls -->
+          <div class="flex items-center gap-1.5">
+            <div class="hidden md:flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+              <button onclick="setStrokeWidth(3, this)" class="stroke-btn px-2.5 py-1 text-xs font-bold rounded-md text-slate-600">Fine</button>
+              <button onclick="setStrokeWidth(7, this)" class="stroke-btn active px-2.5 py-1 text-xs font-black rounded-md bg-white text-indigo-700 shadow-sm">Medium</button>
+              <button onclick="setStrokeWidth(14, this)" class="stroke-btn px-2.5 py-1 text-xs font-bold rounded-md text-slate-600">Thick</button>
+            </div>
+
+            <button onclick="undoCanvasStroke()" class="tablet-touch-btn w-9 h-9 rounded-xl flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200" title="Undo (S-Pen / Finger)">
+              <i class="ph-bold ph-arrow-u-up-left text-base"></i>
+            </button>
+            <button onclick="redoCanvasStroke()" class="tablet-touch-btn w-9 h-9 rounded-xl flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200" title="Redo">
+              <i class="ph-bold ph-arrow-u-up-right text-base"></i>
+            </button>
+            <button onclick="clearCanvasSurface()" class="tablet-touch-btn px-3 py-1.5 rounded-xl text-xs font-black bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 flex items-center gap-1">
+              <i class="ph-bold ph-trash"></i>
+              <span>Clear</span>
+            </button>
+            <button onclick="exportCanvasPNG()" class="tablet-touch-btn px-3 py-1.5 rounded-xl text-xs font-black bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 flex items-center gap-1" title="Export as PNG">
+              <i class="ph-bold ph-image"></i>
+              <span class="hidden sm:inline">Export PNG</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Canvas Area with Skyline/Midline/Baseline Visual Guidelines -->
+        <div class="flex-1 w-full relative rounded-2xl overflow-hidden shadow-inner border-2 border-slate-300 bg-white">
+          <canvas id="drawingCanvas"></canvas>
+          
+          <!-- Guide Legend Pill -->
+          <div class="absolute bottom-2.5 left-3 bg-white/95 backdrop-blur px-3 py-1 rounded-lg border border-slate-200 text-[11px] font-extrabold text-slate-500 shadow-sm pointer-events-none flex items-center gap-2.5">
+            <span class="flex items-center gap-1"><span class="w-2.5 h-0.5 bg-blue-300 inline-block"></span> Skyline</span>
+            <span class="flex items-center gap-1"><span class="w-2.5 h-0.5 bg-rose-400 inline-block"></span> Midline</span>
+            <span class="flex items-center gap-1"><span class="w-2.5 h-0.5 bg-blue-600 inline-block"></span> Baseline</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- TAB 2: MATH MANIPULATIVES (BASE TEN & TEN FRAMES) -->
+      <!-- ======================================================== -->
+      <section id="panel-math" class="view-panel hidden w-full h-full p-2 sm:p-4 overflow-y-auto no-scrollbar flex flex-col gap-4">
+        
+        <!-- Base Ten Place Value Modeling Card -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 flex flex-col gap-4">
+          <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 text-xs font-black rounded-md bg-blue-100 text-blue-700">Math Standards 1.NBT / 2.NBT</span>
+                <h2 class="text-base sm:text-lg font-black text-slate-900">Base-Ten Place Value Concrete Modeling</h2>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">Hundreds Flats (100), Tens Rods (10), and Ones Units (1) with auto-regrouping.</p>
+            </div>
+
+            <!-- Modeled Sum Pill -->
+            <div class="flex items-center gap-3 bg-indigo-50 border border-indigo-200 px-4 py-2 rounded-2xl">
+              <div class="text-right">
+                <div class="text-[10px] font-black uppercase text-indigo-600 tracking-wider">Modeled Sum</div>
+                <div id="baseTenExpandedNotation" class="text-xs font-bold text-indigo-900">100 + 20 + 4</div>
+              </div>
+              <div id="baseTenLiveSum" class="text-3xl sm:text-4xl font-black text-indigo-700 font-mono tracking-tight">124</div>
+            </div>
+          </div>
+
+          <!-- Manipulatives Containers (Hundreds, Tens, Units) -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
+            
+            <!-- HUNDREDS (FLATS) -->
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex flex-col justify-between min-h-[220px]">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-extrabold text-blue-800 uppercase tracking-wide flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-sm bg-blue-600 inline-block"></span> Hundreds Flats (100)
+                </span>
+                <span id="hundredsCountBadge" class="px-2 py-0.5 text-xs font-black bg-blue-100 text-blue-800 rounded-full">1 flat = 100</span>
+              </div>
+
+              <div id="hundredsBlocksWell" class="flex flex-wrap gap-2.5 items-center justify-center py-4 min-h-[100px]"></div>
+
+              <div class="flex items-center justify-center gap-2 pt-2 border-t border-slate-200">
+                <button onclick="updateBaseTenVal('hundreds', -1)" class="tablet-touch-btn flex-1 py-2 rounded-xl text-xs font-black bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 shadow-sm">- 100</button>
+                <button onclick="updateBaseTenVal('hundreds', 1)" class="tablet-touch-btn flex-1 py-2 rounded-xl text-xs font-black bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/20">+ 100</button>
+              </div>
+            </div>
+
+            <!-- TENS (RODS) -->
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex flex-col justify-between min-h-[220px]">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-extrabold text-emerald-800 uppercase tracking-wide flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-sm bg-emerald-600 inline-block"></span> Tens Rods (10)
+                </span>
+                <span id="tensCountBadge" class="px-2 py-0.5 text-xs font-black bg-emerald-100 text-emerald-800 rounded-full">2 rods = 20</span>
+              </div>
+
+              <div id="tensBlocksWell" class="flex flex-wrap gap-2 items-center justify-center py-4 min-h-[100px]"></div>
+
+              <div class="flex items-center justify-center gap-2 pt-2 border-t border-slate-200">
+                <button onclick="updateBaseTenVal('tens', -1)" class="tablet-touch-btn flex-1 py-2 rounded-xl text-xs font-black bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 shadow-sm">- 10</button>
+                <button onclick="updateBaseTenVal('tens', 1)" class="tablet-touch-btn flex-1 py-2 rounded-xl text-xs font-black bg-emerald-600 text-white hover:bg-emerald-700 shadow-md shadow-emerald-500/20">+ 10</button>
+              </div>
+            </div>
+
+            <!-- ONES (UNITS) -->
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex flex-col justify-between min-h-[220px]">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-extrabold text-amber-800 uppercase tracking-wide flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-sm bg-amber-500 inline-block"></span> Ones Units (1)
+                </span>
+                <span id="unitsCountBadge" class="px-2 py-0.5 text-xs font-black bg-amber-100 text-amber-800 rounded-full">4 units = 4</span>
+              </div>
+
+              <div id="unitsBlocksWell" class="flex flex-wrap gap-2 items-center justify-center py-4 min-h-[100px]"></div>
+
+              <div class="flex items-center justify-center gap-2 pt-2 border-t border-slate-200">
+                <button onclick="updateBaseTenVal('units', -1)" class="tablet-touch-btn flex-1 py-2 rounded-xl text-xs font-black bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 shadow-sm">- 1</button>
+                <button onclick="updateBaseTenVal('units', 1)" class="tablet-touch-btn flex-1 py-2 rounded-xl text-xs font-black bg-amber-500 text-white hover:bg-amber-600 shadow-md shadow-amber-500/20">+ 1</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Trade & Regroup Demonstrations -->
+          <div class="flex flex-wrap items-center justify-between gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600">
+            <span class="font-extrabold flex items-center gap-1.5">
+              <i class="ph-bold ph-arrows-clockwise text-indigo-600"></i> Trade & Regroup Demonstrations:
+            </span>
+            <div class="flex items-center gap-2">
+              <button onclick="regroupOnesToTen()" class="tablet-touch-btn px-3 py-1.5 rounded-lg bg-white border border-slate-300 font-black hover:bg-slate-100 text-slate-800 shadow-sm">
+                Trade 10 Ones → 1 Ten
+              </button>
+              <button onclick="regroupTensToHundred()" class="tablet-touch-btn px-3 py-1.5 rounded-lg bg-white border border-slate-300 font-black hover:bg-slate-100 text-slate-800 shadow-sm">
+                Trade 10 Tens → 1 Hundred
+              </button>
+              <button onclick="resetBaseTenState()" class="tablet-touch-btn px-3 py-1.5 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 font-black hover:bg-rose-100">
+                Reset
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Double Ten-Frame Section -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 flex flex-col gap-4">
+          <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 text-xs font-black rounded-md bg-amber-100 text-amber-800">K.OA / 1.OA Ten-Frame</span>
+                <h2 class="text-base sm:text-lg font-black text-slate-900">Interactive Double Ten-Frame (0-20)</h2>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">Tap any box to toggle: <strong>Empty → Red Counter → Yellow Counter</strong>.</p>
+            </div>
+
+            <!-- Stats Counter Pills -->
+            <div class="flex items-center gap-3">
+              <div class="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 border border-slate-200">
+                <span class="w-3 h-3 rounded-full bg-red-500"></span> Red: <span id="tfRedVal" class="font-black text-red-600">0</span>
+              </div>
+              <div class="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 border border-slate-200">
+                <span class="w-3 h-3 rounded-full bg-yellow-400"></span> Yellow: <span id="tfYellowVal" class="font-black text-yellow-600">0</span>
+              </div>
+              <div class="bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-xl text-xs font-black text-indigo-700">
+                Total: <span id="tfTotalVal" class="font-black text-sm">0</span>/20
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Fill Controls -->
+          <div class="flex items-center gap-2 overflow-x-auto no-scrollbar">
+            <span class="text-xs font-black uppercase text-slate-400">Quick Fill:</span>
+            <button onclick="quickFillTenFrame(5, 'red')" class="tablet-touch-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700">Fill 5 Red</button>
+            <button onclick="quickFillTenFrame(10, 'red')" class="tablet-touch-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700">Fill 10 Red</button>
+            <button onclick="quickFillTenFrame(5, 'yellow', true)" class="tablet-touch-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700">+5 Yellow</button>
+            <button onclick="resetTenFrameGrid()" class="tablet-touch-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100">Clear Frames</button>
+          </div>
+
+          <!-- Double Frame Grids -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div class="p-3 bg-slate-100 rounded-2xl border-2 border-slate-300">
+              <div class="text-[11px] font-black text-slate-500 uppercase tracking-wider mb-2 text-center">First Ten-Frame (1 to 10)</div>
+              <div class="grid grid-cols-5 gap-2 max-w-md mx-auto" id="tenFrameBank1"></div>
+            </div>
+            <div class="p-3 bg-slate-100 rounded-2xl border-2 border-slate-300">
+              <div class="text-[11px] font-black text-slate-500 uppercase tracking-wider mb-2 text-center">Second Ten-Frame (11 to 20)</div>
+              <div class="grid grid-cols-5 gap-2 max-w-md mx-auto" id="tenFrameBank2"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- TAB 3: SAY-TAP-MAP-WRITE (SCIENCE OF READING) -->
+      <!-- ======================================================== -->
+      <section id="panel-mapping" class="view-panel hidden w-full h-full p-2 sm:p-4 overflow-y-auto no-scrollbar flex flex-col gap-4">
+        
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 flex flex-col gap-5">
+          <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 text-xs font-black rounded-md bg-rose-100 text-rose-700">Orthographic Mapping</span>
+                <h2 class="text-base sm:text-lg font-black text-slate-900">Say It • Tap It • Map It • Write It</h2>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">Phonemic segmentation count, Elkonin sound mapping boxes, and Heart Words protocol.</p>
+            </div>
+
+            <!-- Heart Words Preset Dropdown -->
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-black text-slate-400 uppercase">Presets:</span>
+              <select onchange="applyMappingPreset(this.value)" class="text-xs font-black px-3 py-2 rounded-xl bg-slate-100 border border-slate-300 text-slate-800 tablet-touch-btn focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="custom">✏️ Custom Word</option>
+                <option value="said">said (s - ai - d)</option>
+                <option value="they">they (th - ey)</option>
+                <option value="was">was (w - a - s)</option>
+                <option value="the">the (th - e)</option>
+                <option value="from">from (f - r - o - m)</option>
+                <option value="ship">ship (sh - i - p)</option>
+                <option value="catch">catch (c - a - tch)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- STEP 1: TAP IT -->
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-black uppercase text-slate-500 tracking-wider">Step 1: Tap It (Phonemic Segmentation Count)</span>
+              <span class="text-xs font-bold text-indigo-600">Tap buttons or finger-tap for each distinct sound heard</span>
+            </div>
+
+            <div class="flex justify-center items-center gap-2 sm:gap-4 my-2">
+              <button onclick="tapAudioSoundCount(1, this)" class="tap-counter-btn w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white border-2 border-slate-300 text-lg sm:text-xl font-black text-slate-700 shadow-sm tablet-touch-btn">1</button>
+              <button onclick="tapAudioSoundCount(2, this)" class="tap-counter-btn w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white border-2 border-slate-300 text-lg sm:text-xl font-black text-slate-700 shadow-sm tablet-touch-btn">2</button>
+              <button onclick="tapAudioSoundCount(3, this)" class="tap-counter-btn w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white border-2 border-slate-300 text-lg sm:text-xl font-black text-slate-700 shadow-sm tablet-touch-btn">3</button>
+              <button onclick="tapAudioSoundCount(4, this)" class="tap-counter-btn w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white border-2 border-slate-300 text-lg sm:text-xl font-black text-slate-700 shadow-sm tablet-touch-btn">4</button>
+              <button onclick="tapAudioSoundCount(5, this)" class="tap-counter-btn w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white border-2 border-slate-300 text-lg sm:text-xl font-black text-slate-700 shadow-sm tablet-touch-btn">5</button>
+              <button onclick="tapAudioSoundCount(6, this)" class="tap-counter-btn w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white border-2 border-slate-300 text-lg sm:text-xl font-black text-slate-700 shadow-sm tablet-touch-btn">6</button>
+            </div>
+          </div>
+
+          <!-- STEP 2 & 3: MAP IT & WRITE IT -->
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+              <div class="text-left">
+                <span class="text-xs font-black uppercase text-slate-500 tracking-wider">Step 2: Map It (Color Chips) & Step 3: Write It</span>
+                <p class="text-xs text-slate-500">Tap chip selector: Blue = Consonant, Red = Vowel, Heart = Irregular sound.</p>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <div class="hidden sm:flex items-center gap-2 text-xs font-bold text-slate-600 bg-white px-3 py-1.5 rounded-xl border border-slate-200">
+                  <span class="w-3 h-3 rounded-full bg-blue-500"></span> Consonant
+                  <span class="w-3 h-3 rounded-full bg-red-500 ml-1"></span> Vowel
+                  <span class="text-rose-500 ml-1">♥ Heart</span>
+                </div>
+
+                <button onclick="removeMappingBox()" class="tablet-touch-btn px-3 py-1.5 rounded-xl text-xs font-black bg-white border border-slate-300 text-slate-700 hover:bg-slate-100">- Box</button>
+                <button onclick="addMappingBox()" class="tablet-touch-btn px-3 py-1.5 rounded-xl text-xs font-black bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm">+ Box</button>
+                <button onclick="resetMappingBoard()" class="tablet-touch-btn px-2.5 py-1.5 rounded-xl text-xs font-black bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100">Reset</button>
+              </div>
+            </div>
+
+            <div id="soundMappingColsContainer" class="flex flex-wrap justify-center items-end gap-3 sm:gap-4 my-4"></div>
+
+            <div class="mt-4 pt-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+              <button onclick="speakAssembledMappingWord()" class="tablet-touch-btn px-4 py-2 rounded-xl text-xs font-black bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 flex items-center gap-2">
+                <i class="ph-bold ph-speaker-high text-base"></i>
+                <span>Hear Assembled Word</span>
+              </button>
+
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-slate-500">Assembled Word:</span>
+                <span id="assembledMappedWordBadge" class="text-xl sm:text-2xl font-black text-slate-900 tracking-wider uppercase font-mono px-3 py-1 bg-white rounded-lg border border-slate-200">
+                  SIP
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- TAB 4: UFLI CONTINUOUS BLENDING DECK (40 WORDS) -->
+      <!-- ======================================================== -->
+      <section id="panel-blending" class="view-panel hidden w-full h-full p-2 sm:p-4 overflow-y-auto no-scrollbar flex flex-col gap-4">
+        
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 flex flex-col gap-4">
+          <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 text-xs font-black rounded-md bg-emerald-100 text-emerald-800">UFLI Foundations Deck</span>
+                <h2 class="text-base sm:text-lg font-black text-slate-900">Continuous Blending Sweep & Vocabulary</h2>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">Teacher-led continuous blending sweep with concrete real-world imagery.</p>
+            </div>
+
+            <!-- Categories Dropdown -->
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-black text-slate-400 uppercase hidden sm:inline">Phonics Phase:</span>
+              <select id="blendingCategoryFilter" onchange="filterBlendingBank(this.value)" class="text-xs font-black px-3 py-2 rounded-xl bg-slate-100 border border-slate-300 text-slate-800 tablet-touch-btn focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="all">🌟 All Categories (40 Words)</option>
+                <option value="Alphabet & CVC">1. Alphabet & CVC (10 Words)</option>
+                <option value="Consonants & Blends">2. Consonants & Blends (10 Words)</option>
+                <option value="FLSZ & Digraphs">3. FLSZ & Digraphs (8 Words)</option>
+                <option value="VCe Patterns">4. VCe / Magic e (6 Words)</option>
+                <option value="R-Controlled">5. R-Controlled Vowels (3 Words)</option>
+                <option value="Vowel Teams">6. Vowel Teams & Diphthongs (6 Words)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Blending Stage with Sweep Car -->
+          <div class="bg-gradient-to-b from-indigo-50/70 to-blue-50/50 border-2 border-indigo-100 rounded-2xl p-4 sm:p-8 flex flex-col items-center justify-between min-h-[380px]">
+            
+            <div class="w-full max-w-xl flex items-center justify-between text-xs font-black text-indigo-800 mb-2">
+              <span id="blendingCurLesson" class="bg-white/80 px-3 py-1 rounded-full border border-indigo-200 shadow-sm">Lesson 5: CV & CVC</span>
+              <span id="blendingCurProgress" class="bg-white/80 px-3 py-1 rounded-full border border-indigo-200 shadow-sm">1 of 40</span>
+            </div>
+
+            <!-- Track & Animated Blending Car -->
+            <div class="w-full max-w-xl car-slider-track mb-6">
+              <div id="blendingCar" class="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-2xl font-black text-sm transition-transform duration-1000 ease-in-out cursor-pointer" onclick="executeCarSweep()">
+                <span class="text-xl">🏎️</span>
+                <span class="tracking-wider">BLEND!</span>
+              </div>
+            </div>
+
+            <!-- Big Phoneme Cards Deck -->
+            <div id="blendingCardsContainer" class="flex items-center justify-center gap-3 sm:gap-6 flex-wrap my-4"></div>
+
+            <!-- Controller Buttons -->
+            <div class="flex items-center justify-center gap-2 sm:gap-3 flex-wrap mt-6 pt-4 border-t border-indigo-200/60 w-full max-w-xl">
+              <button onclick="shiftBlendingWord(-1)" class="tablet-touch-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 shadow-sm flex items-center gap-1.5">
+                <i class="ph-bold ph-caret-left"></i> Prev
+              </button>
+
+              <button onclick="executeCarSweep()" class="tablet-touch-btn px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-600/30 flex items-center gap-2">
+                <i class="ph-bold ph-lightning"></i>
+                <span>Continuous Sweep</span>
+              </button>
+
+              <button onclick="speakCurrentPhonemesAndWord()" class="tablet-touch-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black bg-blue-100 hover:bg-blue-200 text-blue-900 border border-blue-300 flex items-center gap-1.5">
+                <i class="ph-bold ph-speaker-high"></i>
+                <span class="hidden sm:inline">Sound Out</span>
+              </button>
+
+              <button onclick="showConcreteVocabModal()" class="tablet-touch-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/30 flex items-center gap-2">
+                <i class="ph-bold ph-image"></i>
+                <span>Meaning Photo</span>
+              </button>
+
+              <button onclick="shiftBlendingWord(1)" class="tablet-touch-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 shadow-sm flex items-center gap-1.5">
+                Next <i class="ph-bold ph-caret-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: CONCRETE VOCABULARY CONNECTION SHEET -->
+  <!-- ======================================================== -->
+  <div id="vocabModalBackdrop" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden items-center justify-center p-3 sm:p-6" onclick="hideConcreteVocabModal(event)">
+    <div class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-200 sheet-up" onclick="event.stopPropagation()">
+      <div class="relative w-full h-56 sm:h-64 bg-slate-100 overflow-hidden flex items-center justify-center">
+        <img id="vocabModalImg" src="" alt="Vocabulary Concept" class="w-full h-full object-cover transition-opacity duration-300" onerror="handleVocabImgFallback(this)">
+        <div class="absolute top-3 right-3 bg-emerald-500 text-white text-[11px] font-black uppercase px-2.5 py-1 rounded-full shadow-md">
+          Concrete Meaning
+        </div>
+      </div>
+
+      <div class="p-5 sm:p-6 flex flex-col gap-3">
+        <div class="flex items-baseline justify-between border-b border-slate-100 pb-2">
+          <h3 id="vocabModalWordHeader" class="text-3xl font-black text-slate-900 tracking-wide uppercase font-mono">MAT</h3>
+          <span id="vocabModalCatBadge" class="text-xs font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">Alphabet & CVC</span>
+        </div>
+
+        <p id="vocabModalDefText" class="text-sm text-slate-600 leading-relaxed"></p>
+
+        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-3.5 flex flex-col gap-1">
+          <span class="text-[11px] font-black uppercase text-amber-800 tracking-wider flex items-center gap-1.5">
+            <i class="ph-bold ph-chats-circle text-amber-600"></i> Turn & Talk Oral Prompt:
+          </span>
+          <p id="vocabModalPromptText" class="text-xs text-amber-950 italic leading-snug font-medium"></p>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button onclick="hideConcreteVocabModal()" class="tablet-touch-btn px-4 py-2 rounded-xl text-xs font-black bg-slate-100 text-slate-700 hover:bg-slate-200">
+            Close
+          </button>
+          <button onclick="speakVocabTurnTalkPrompt()" class="tablet-touch-btn px-3 py-2 rounded-xl text-xs font-black bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 flex items-center gap-1">
+            <i class="ph-bold ph-speaker-high"></i> Read Prompt
+          </button>
+          <button onclick="hideConcreteVocabModal(); shiftBlendingWord(1);" class="tablet-touch-btn px-4 py-2 rounded-xl text-xs font-black bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm flex items-center gap-1">
+            Next Word <i class="ph-bold ph-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: SAMSUNG TABLET INSTALLATION & TIPS -->
+  <!-- ======================================================== -->
+  <div id="installHelpModalBackdrop" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4" onclick="closeInstallHelpModal(event)">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 sheet-up flex flex-col gap-4" onclick="event.stopPropagation()">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-lg">
+            <i class="ph-bold ph-device-tablet"></i>
+          </div>
+          <h3 class="text-base font-black text-slate-900">Samsung Tablet Tips</h3>
+        </div>
+        <button onclick="closeInstallHelpModal()" class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200">
+          <i class="ph-bold ph-x"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs text-slate-600 leading-relaxed">
+        <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950">
+          <strong class="text-emerald-900 font-black block mb-1">📥 1-Tap Download to Galaxy Tablet:</strong>
+          Tap the green <strong>"Save App (.html)"</strong> button in the top bar. The entire file downloads straight into your <em>My Files &gt; Downloads</em> folder. You can open and use it completely offline anytime!
+        </div>
+
+        <div class="p-3 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-950">
+          <strong class="text-indigo-900 font-black block mb-1">📲 Add to Home Screen (Samsung Internet / Chrome):</strong>
+          1. Tap the <strong>three dots (⋮)</strong> or hamburger menu in your browser.<br>
+          2. Tap <strong>"Install app"</strong> or <strong>"Add page to &gt; Home screen"</strong>.<br>
+          3. This opens a standalone, full-screen app icon on your tablet desktop without browser bars!
+        </div>
+
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+          <strong class="text-slate-900 font-black block mb-1">🖊️ Samsung S-Pen Support:</strong>
+          The handwriting canvas handles S-Pen pressure and touch stylus drawing with auto-smoothing guidelines (Skyline, Midline, Baseline).
+        </div>
+      </div>
+
+      <button onclick="closeInstallHelpModal()" class="w-full py-2.5 rounded-xl text-xs font-black bg-indigo-600 text-white shadow-md shadow-indigo-600/30">
+        Got It!
+      </button>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT APPLICATION LOGIC -->
+  <script>
+    // ========================================================
+    // 1. ONE-TAP DOWNLOAD SELF APP FILE (.HTML) FOR SAMSUNG TABLETS
+    // ========================================================
+    function downloadSelfAppFile() {
+      try {
+        const fullSource = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+        const blob = new Blob([fullSource], { type: 'text/html;charset=utf-8' });
+        const blobUrl = URL.createObjectURL(blob);
+        
+        const downloadLink = document.createElement('a');
+        downloadLink.href = blobUrl;
+        downloadLink.download = 'K3-Teacher-Demonstration-Workspace.html';
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
+      } catch (err) {
+        console.error("Download failed:", err);
+      }
+    }
+
+    // ========================================================
+    // 2. ANDROID NATIVE FULLSCREEN CONTROLS
+    // ========================================================
+    async function toggleAndroidFullscreen() {
+      const root = document.documentElement;
+      const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
+
+      if (!isFullscreen) {
+        try {
+          if (root.requestFullscreen) {
+            await root.requestFullscreen();
+          } else if (root.webkitRequestFullscreen) {
+            await root.webkitRequestFullscreen();
+          }
+        } catch (err) {
+          console.warn("Fullscreen request:", err);
+        }
+      } else {
+        try {
+          if (document.exitFullscreen) {
+            await document.exitFullscreen();
+          } else if (document.webkitExitFullscreen) {
+            await document.webkitExitFullscreen();
+          }
+        } catch (err) {
+          console.warn("Exit fullscreen:", err);
+        }
+      }
+      syncFullscreenButtonState();
+    }
+
+    function syncFullscreenButtonState() {
+      const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
+      const icon = document.getElementById('fullscreenIcon');
+      const label = document.getElementById('fullscreenLabel');
+      if (isFullscreen) {
+        icon.className = 'ph-bold ph-arrows-in-simple text-sm';
+        label.innerText = 'Exit Fullscreen';
+      } else {
+        icon.className = 'ph-bold ph-arrows-out-simple text-sm';
+        label.innerText = 'Fullscreen';
+      }
+      setTimeout(resizeCanvasElement, 100);
+    }
+
+    document.addEventListener('fullscreenchange', syncFullscreenButtonState);
+    document.addEventListener('webkitfullscreenchange', syncFullscreenButtonState);
+
+    // ========================================================
+    // 3. SPEECH AUDIO PRONUNCIATION SYNTHESIS
+    // ========================================================
+    let isSpeechVoiceActive = true;
+
+    function toggleSpeechAudio() {
+      isSpeechVoiceActive = !isSpeechVoiceActive;
+      const label = document.getElementById('audioSpeechLabel');
+      const icon = document.getElementById('audioSpeechIcon');
+      if (isSpeechVoiceActive) {
+        label.innerText = 'ON';
+        label.className = 'text-emerald-300 font-extrabold text-[11px]';
+        icon.className = 'ph-fill ph-speaker-high text-emerald-400 text-sm';
+      } else {
+        label.innerText = 'OFF';
+        label.className = 'text-slate-400 font-extrabold text-[11px]';
+        icon.className = 'ph-fill ph-speaker-slash text-slate-400 text-sm';
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+      }
+    }
+
+    function triggerSpeechSynthesis(text, speed = 0.85) {
+      if (!isSpeechVoiceActive || !window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = speed;
+      utterance.pitch = 1.05;
+      utterance.lang = 'en-US';
+      window.speechSynthesis.speak(utterance);
+    }
+
+    // Modal Helpers
+    function openInstallHelpModal() {
+      document.getElementById('installHelpModalBackdrop').classList.remove('hidden');
+      document.getElementById('installHelpModalBackdrop').classList.add('flex');
+    }
+    function closeInstallHelpModal(e) {
+      if (e && e.target !== e.currentTarget && e.target.tagName !== 'BUTTON') return;
+      document.getElementById('installHelpModalBackdrop').classList.add('hidden');
+      document.getElementById('installHelpModalBackdrop').classList.remove('flex');
+    }
+
+    // Tab Switching
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.view-panel').forEach(p => p.classList.add('hidden'));
+      document.querySelectorAll('.nav-tab').forEach(b => {
+        b.classList.remove('active', 'bg-indigo-600', 'text-white', 'shadow-md', 'shadow-indigo-600/30');
+        b.classList.add('bg-slate-800/80', 'text-slate-300');
+      });
+
+      const targetView = document.getElementById(`panel-${tabId}`);
+      if (targetView) targetView.classList.remove('hidden');
+
+      if (btn) {
+        btn.classList.add('active', 'bg-indigo-600', 'text-white', 'shadow-md', 'shadow-indigo-600/30');
+        btn.classList.remove('bg-slate-800/80', 'text-slate-300');
+      }
+
+      if (tabId === 'handwriting') {
+        setTimeout(resizeCanvasElement, 80);
+      }
+    }
+
+    // ========================================================
+    // 4. S-PEN & TOUCH CANVAS (STYLUS SMOOTHING & GUIDELINES)
+    // ========================================================
+    const hwCanvas = document.getElementById('drawingCanvas');
+    const hwCtx = hwCanvas.getContext('2d', { willReadFrequently: true });
+
+    let isDrawingStroke = false;
+    let penInkColor = '#0f172a';
+    let penStrokeSize = 7;
+    let isEraserActive = false;
+    let guidelineMode = 'k1'; // 'k1', 'g23', 'grid', 'blank'
+
+    let historyStack = [];
+    let redoStack = [];
+    let strokePoints = [];
+
+    function resizeCanvasElement() {
+      const container = hwCanvas.parentElement;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+
+      if (rect.width > 0 && rect.height > 0) {
+        let tempCanvas = document.createElement('canvas');
+        tempCanvas.width = hwCanvas.width;
+        tempCanvas.height = hwCanvas.height;
+        let tempCtx = tempCanvas.getContext('2d');
+        if (hwCanvas.width > 0) {
+          tempCtx.drawImage(hwCanvas, 0, 0);
+        }
+
+        hwCanvas.width = rect.width;
+        hwCanvas.height = rect.height;
+
+        renderGuidelines();
+        if (historyStack.length > 0) {
+          let img = new Image();
+          img.onload = () => hwCtx.drawImage(img, 0, 0);
+          img.src = historyStack[historyStack.length - 1];
+        }
+      }
+    }
+
+    function saveCanvasState() {
+      if (historyStack.length >= 25) historyStack.shift();
+      historyStack.push(hwCanvas.toDataURL());
+      redoStack = [];
+    }
+
+    function renderGuidelines() {
+      hwCtx.save();
+      const w = hwCanvas.width;
+      const h = hwCanvas.height;
+
+      if (guidelineMode === 'blank') {
+        hwCtx.restore();
+        return;
+      }
+
+      if (guidelineMode === 'grid') {
+        hwCtx.fillStyle = '#cbd5e1';
+        const gap = 38;
+        for (let x = 20; x < w; x += gap) {
+          for (let y = 20; y < h; y += gap) {
+            hwCtx.beginPath();
+            hwCtx.arc(x, y, 1.5, 0, Math.PI * 2);
+            hwCtx.fill();
+          }
+        }
+        hwCtx.restore();
+        return;
+      }
+
+      // Primary Line Rules (K-1 Wide or 2-3 Standard)
+      const rowHeight = guidelineMode === 'k1' ? 124 : 88;
+      const rowGap = guidelineMode === 'k1' ? 38 : 30;
+      const totalRows = Math.floor(h / (rowHeight + rowGap));
+
+      for (let r = 0; r < totalRows; r++) {
+        const topY = 32 + r * (rowHeight + rowGap);
+        const midY = topY + (rowHeight * 0.5);
+        const baseY = topY + rowHeight;
+        const descY = baseY + (rowHeight * 0.25);
+
+        // 1. Skyline (Blue solid)
+        hwCtx.strokeStyle = '#93c5fd';
+        hwCtx.lineWidth = 2.5;
+        hwCtx.setLineDash([]);
+        hwCtx.beginPath();
+        hwCtx.moveTo(24, topY);
+        hwCtx.lineTo(w - 24, topY);
+        hwCtx.stroke();
+
+        // 2. Midline (Dashed Red)
+        hwCtx.strokeStyle = '#f87171';
+        hwCtx.lineWidth = 2.0;
+        hwCtx.setLineDash([8, 8]);
+        hwCtx.beginPath();
+        hwCtx.moveTo(24, midY);
+        hwCtx.lineTo(w - 24, midY);
+        hwCtx.stroke();
+
+        // 3. Baseline (Strong Solid Blue)
+        hwCtx.strokeStyle = '#2563eb';
+        hwCtx.lineWidth = 3.0;
+        hwCtx.setLineDash([]);
+        hwCtx.beginPath();
+        hwCtx.moveTo(24, baseY);
+        hwCtx.lineTo(w - 24, baseY);
+        hwCtx.stroke();
+
+        // 4. Descender Line
+        hwCtx.strokeStyle = '#e2e8f0';
+        hwCtx.lineWidth = 1.5;
+        hwCtx.setLineDash([4, 4]);
+        hwCtx.beginPath();
+        hwCtx.moveTo(24, descY);
+        hwCtx.lineTo(w - 24, descY);
+        hwCtx.stroke();
+      }
+      hwCtx.restore();
+    }
+
+    function setGuideMode(mode, btn) {
+      guidelineMode = mode;
+      document.querySelectorAll('.guide-mode-btn').forEach(b => {
+        b.classList.remove('active', 'bg-indigo-100', 'text-indigo-700', 'border-indigo-300');
+        b.classList.add('bg-slate-100', 'text-slate-600', 'border-slate-200');
+      });
+      if (btn) {
+        btn.classList.add('active', 'bg-indigo-100', 'text-indigo-700', 'border-indigo-300');
+        btn.classList.remove('bg-slate-100', 'text-slate-600', 'border-slate-200');
+      }
+      hwCtx.clearRect(0, 0, hwCanvas.width, hwCanvas.height);
+      renderGuidelines();
+      if (historyStack.length > 0) {
+        let img = new Image();
+        img.onload = () => hwCtx.drawImage(img, 0, 0);
+        img.src = historyStack[historyStack.length - 1];
+      }
+    }
+
+    function setPenColor(color, btn, isHighlighter = false) {
+      isEraserActive = false;
+      penInkColor = color;
+      if (isHighlighter) {
+        penStrokeSize = 24;
+      } else if (penStrokeSize > 16) {
+        penStrokeSize = 7;
+      }
+      document.querySelectorAll('.ink-swatch').forEach(s => s.classList.remove('ring-2', 'ring-offset-2', 'ring-indigo-600'));
+      if (btn) btn.classList.add('ring-2', 'ring-offset-2', 'ring-indigo-600');
+    }
+
+    function setEraserMode(btn) {
+      isEraserActive = true;
+      document.querySelectorAll('.ink-swatch').forEach(s => s.classList.remove('ring-2', 'ring-offset-2', 'ring-indigo-600'));
+      if (btn) btn.classList.add('ring-2', 'ring-offset-2', 'ring-indigo-600');
+    }
+
+    function setStrokeWidth(size, btn) {
+      penStrokeSize = size;
+      document.querySelectorAll('.stroke-btn').forEach(b => {
+        b.classList.remove('active', 'bg-white', 'text-indigo-700', 'shadow-sm', 'font-black');
+        b.classList.add('text-slate-600', 'font-bold');
+      });
+      if (btn) {
+        btn.classList.add('active', 'bg-white', 'text-indigo-700', 'shadow-sm', 'font-black');
+        btn.classList.remove('text-slate-600', 'font-bold');
+      }
+    }
+
+    function clearCanvasSurface() {
+      saveCanvasState();
+      hwCtx.clearRect(0, 0, hwCanvas.width, hwCanvas.height);
+      renderGuidelines();
+      historyStack = [];
+      redoStack = [];
+    }
+
+    function undoCanvasStroke() {
+      if (historyStack.length > 0) {
+        const item = historyStack.pop();
+        redoStack.push(item);
+        hwCtx.clearRect(0, 0, hwCanvas.width, hwCanvas.height);
+        renderGuidelines();
+        if (historyStack.length > 0) {
+          let img = new Image();
+          img.onload = () => hwCtx.drawImage(img, 0, 0);
+          img.src = historyStack[historyStack.length - 1];
+        }
+      }
+    }
+
+    function redoCanvasStroke() {
+      if (redoStack.length > 0) {
+        const restored = redoStack.pop();
+        historyStack.push(restored);
+        let img = new Image();
+        img.onload = () => hwCtx.drawImage(img, 0, 0);
+        img.src = restored;
+      }
+    }
+
+    function exportCanvasPNG() {
+      const link = document.createElement('a');
+      link.download = `k3-handwriting-${Date.now()}.png`;
+      link.href = hwCanvas.toDataURL('image/png');
+      link.click();
+    }
+
+    // Precision Pointer Events (Samsung S-Pen + Touch)
+    function getCanvasCoordinates(e) {
+      const rect = hwCanvas.getBoundingClientRect();
+      return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+        pressure: e.pressure && e.pressure > 0 ? e.pressure : 0.5
+      };
+    }
+
+    hwCanvas.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      saveCanvasState();
+      isDrawingStroke = true;
+      strokePoints = [];
+      strokePoints.push(getCanvasCoordinates(e));
+    });
+
+    hwCanvas.addEventListener('pointermove', (e) => {
+      if (!isDrawingStroke) return;
+      e.preventDefault();
+      const pt = getCanvasCoordinates(e);
+      strokePoints.push(pt);
+
+      hwCtx.save();
+      if (isEraserActive) {
+        hwCtx.globalCompositeOperation = 'destination-out';
+        hwCtx.lineWidth = 34;
+      } else {
+        hwCtx.globalCompositeOperation = 'source-over';
+        hwCtx.strokeStyle = penInkColor;
+        // Dynamically scale S-Pen pressure
+        const pressureScale = e.pointerType === 'pen' ? (0.6 + pt.pressure * 0.8) : 1;
+        hwCtx.lineWidth = penStrokeSize * pressureScale;
+      }
+
+      hwCtx.lineCap = 'round';
+      hwCtx.lineJoin = 'round';
+
+      if (strokePoints.length > 2) {
+        const p1 = strokePoints[strokePoints.length - 2];
+        const p2 = strokePoints[strokePoints.length - 1];
+        const mid = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+
+        hwCtx.beginPath();
+        hwCtx.moveTo(p1.x, p1.y);
+        hwCtx.quadraticCurveTo(p1.x, p1.y, mid.x, mid.y);
+        hwCtx.stroke();
+      } else {
+        hwCtx.beginPath();
+        hwCtx.arc(pt.x, pt.y, hwCtx.lineWidth / 2, 0, Math.PI * 2);
+        hwCtx.fill();
+      }
+      hwCtx.restore();
+    });
+
+    const finishStroke = () => {
+      if (isDrawingStroke) {
+        isDrawingStroke = false;
+        strokePoints = [];
+      }
+    };
+    hwCanvas.addEventListener('pointerup', finishStroke);
+    hwCanvas.addEventListener('pointercancel', finishStroke);
+    hwCanvas.addEventListener('pointerleave', finishStroke);
+
+    // ========================================================
+    // 5. BASE-TEN PLACE VALUE LOGIC
+    // ========================================================
+    let hundredsTotal = 1;
+    let tensTotal = 2;
+    let unitsTotal = 4;
+
+    function renderBaseTenDisplay() {
+      const sum = (hundredsTotal * 100) + (tensTotal * 10) + unitsTotal;
+      document.getElementById('baseTenLiveSum').innerText = sum;
+      document.getElementById('baseTenExpandedNotation').innerText = `${hundredsTotal * 100} + ${tensTotal * 10} + ${unitsTotal}`;
+
+      document.getElementById('hundredsCountBadge').innerText = `${hundredsTotal} flat${hundredsTotal === 1 ? '' : 's'} = ${hundredsTotal * 100}`;
+      document.getElementById('tensCountBadge').innerText = `${tensTotal} rod${tensTotal === 1 ? '' : 's'} = ${tensTotal * 10}`;
+      document.getElementById('unitsCountBadge').innerText = `${unitsTotal} unit${unitsTotal === 1 ? '' : 's'} = ${unitsTotal}`;
+
+      const hWell = document.getElementById('hundredsBlocksWell');
+      hWell.innerHTML = '';
+      for (let i = 0; i < hundredsTotal; i++) {
+        hWell.innerHTML += '<div class="flat-100 transform transition-transform hover:scale-105" title="Hundred Flat (100)"></div>';
+      }
+
+      const tWell = document.getElementById('tensBlocksWell');
+      tWell.innerHTML = '';
+      for (let i = 0; i < tensTotal; i++) {
+        tWell.innerHTML += '<div class="rod-10 transform transition-transform hover:scale-105" title="Ten Rod (10)"></div>';
+      }
+
+      const uWell = document.getElementById('unitsBlocksWell');
+      uWell.innerHTML = '';
+      for (let i = 0; i < unitsTotal; i++) {
+        uWell.innerHTML += '<div class="unit-1 transform transition-transform hover:scale-110" title="One Unit (1)"></div>';
+      }
+    }
+
+    function updateBaseTenVal(kind, delta) {
+      if (kind === 'hundreds') hundredsTotal = Math.max(0, Math.min(9, hundredsTotal + delta));
+      if (kind === 'tens') tensTotal = Math.max(0, Math.min(19, tensTotal + delta));
+      if (kind === 'units') unitsTotal = Math.max(0, Math.min(29, unitsTotal + delta));
+      renderBaseTenDisplay();
+    }
+
+    function regroupOnesToTen() {
+      if (unitsTotal >= 10) {
+        unitsTotal -= 10;
+        tensTotal += 1;
+        triggerSpeechSynthesis('Traded 10 ones for 1 ten rod!');
+        renderBaseTenDisplay();
+      }
+    }
+
+    function regroupTensToHundred() {
+      if (tensTotal >= 10) {
+        tensTotal -= 10;
+        hundredsTotal += 1;
+        triggerSpeechSynthesis('Traded 10 tens for 1 hundreds flat!');
+        renderBaseTenDisplay();
+      }
+    }
+
+    function resetBaseTenState() {
+      hundredsTotal = 0;
+      tensTotal = 0;
+      unitsTotal = 0;
+      renderBaseTenDisplay();
+    }
+
+    // ========================================================
+    // 6. INTERACTIVE DOUBLE TEN-FRAME LOGIC (0-20)
+    // ========================================================
+    const tenFrameTokens = Array(20).fill('empty');
+
+    function renderTenFrameElements() {
+      const bank1 = document.getElementById('tenFrameBank1');
+      const bank2 = document.getElementById('tenFrameBank2');
+      bank1.innerHTML = '';
+      bank2.innerHTML = '';
+
+      let redCount = 0;
+      let yellowCount = 0;
+
+      tenFrameTokens.forEach((status, i) => {
+        const cell = document.createElement('div');
+        cell.className = 'ten-cell';
+        cell.title = `Slot ${i + 1}`;
+
+        if (status === 'red') {
+          cell.innerHTML = '<div class="counter-token counter-red"></div>';
+          redCount++;
+        } else if (status === 'yellow') {
+          cell.innerHTML = '<div class="counter-token counter-yellow"></div>';
+          yellowCount++;
+        }
+
+        cell.onclick = () => {
+          if (tenFrameTokens[i] === 'empty') tenFrameTokens[i] = 'red';
+          else if (tenFrameTokens[i] === 'red') tenFrameTokens[i] = 'yellow';
+          else tenFrameTokens[i] = 'empty';
+          renderTenFrameElements();
+        };
+
+        if (i < 10) {
+          bank1.appendChild(cell);
+        } else {
+          bank2.appendChild(cell);
+        }
+      });
+
+      document.getElementById('tfRedVal').innerText = redCount;
+      document.getElementById('tfYellowVal').innerText = yellowCount;
+      document.getElementById('tfTotalVal').innerText = redCount + yellowCount;
+    }
+
+    function quickFillTenFrame(amount, color, append = false) {
+      if (!append) tenFrameTokens.fill('empty');
+      let filled = 0;
+      for (let i = 0; i < tenFrameTokens.length; i++) {
+        if (tenFrameTokens[i] === 'empty') {
+          tenFrameTokens[i] = color;
+          filled++;
+          if (filled >= amount) break;
+        }
+      }
+      renderTenFrameElements();
+    }
+
+    function resetTenFrameGrid() {
+      tenFrameTokens.fill('empty');
+      renderTenFrameElements();
+    }
+
+    // ========================================================
+    // 7. SAY-TAP-MAP-WRITE LOGIC
+    // ========================================================
+    let mappingChipsData = [
+      { chip: 'blue', letter: 's' },
+      { chip: 'red', letter: 'i' },
+      { chip: 'blue', letter: 'p' }
+    ];
+
+    function renderMappingBoard() {
+      const container = document.getElementById('soundMappingColsContainer');
+      container.innerHTML = '';
+
+      let assembled = '';
+
+      mappingChipsData.forEach((box, i) => {
+        assembled += box.letter;
+        const col = document.createElement('div');
+        col.className = 'flex flex-col items-center gap-2';
+
+        let chipRender = '';
+        if (box.chip === 'blue') {
+          chipRender = '<div class="w-12 h-12 rounded-full bg-blue-500 border-2 border-blue-700 shadow-md flex items-center justify-center text-white text-xs font-black">C</div>';
+        } else if (box.chip === 'red') {
+          chipRender = '<div class="w-12 h-12 rounded-full bg-red-500 border-2 border-red-700 shadow-md flex items-center justify-center text-white text-xs font-black">V</div>';
+        } else if (box.chip === 'heart') {
+          chipRender = '<div class="text-4xl text-rose-500 animate-pulse select-none">♥</div>';
+        }
+
+        col.innerHTML = `
+          <div class="flex items-center gap-1.5 bg-white p-1 rounded-full border border-slate-200 shadow-sm">
+            <button onclick="setMappingChipType(${i}, 'blue')" class="w-6 h-6 rounded-full bg-blue-500 ${box.chip === 'blue' ? 'ring-2 ring-slate-900 scale-110' : 'opacity-60'} tablet-touch-btn" title="Consonant"></button>
+            <button onclick="setMappingChipType(${i}, 'red')" class="w-6 h-6 rounded-full bg-red-500 ${box.chip === 'red' ? 'ring-2 ring-slate-900 scale-110' : 'opacity-60'} tablet-touch-btn" title="Vowel"></button>
+            <button onclick="setMappingChipType(${i}, 'heart')" class="w-6 h-6 rounded-full bg-rose-500 text-white text-xs flex items-center justify-center ${box.chip === 'heart' ? 'ring-2 ring-slate-900 scale-110' : 'opacity-60'} tablet-touch-btn" title="Heart Word">♥</button>
+          </div>
+
+          <div class="w-20 h-20 sm:w-24 sm:h-24 bg-white border-4 border-indigo-400 rounded-2xl flex items-center justify-center shadow-inner cursor-pointer" onclick="cycleMappingChipNext(${i})">
+            ${chipRender}
+          </div>
+
+          <div class="relative w-20 sm:w-24">
+            <input type="text" maxlength="3" value="${box.letter}" oninput="updateMappingText(${i}, this.value)" class="w-full h-16 text-center text-3xl font-black uppercase text-slate-800 bg-white border-2 border-slate-300 rounded-xl focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 outline-none">
+          </div>
+        `;
+        container.appendChild(col);
+      });
+
+      document.getElementById('assembledMappedWordBadge').innerText = assembled || '...';
+    }
+
+    function setMappingChipType(i, type) {
+      mappingChipsData[i].chip = mappingChipsData[i].chip === type ? null : type;
+      renderMappingBoard();
+    }
+
+    function cycleMappingChipNext(i) {
+      const order = [null, 'blue', 'red', 'heart'];
+      const cur = order.indexOf(mappingChipsData[i].chip);
+      mappingChipsData[i].chip = order[(cur + 1) % order.length];
+      renderMappingBoard();
+    }
+
+    function updateMappingText(i, txt) {
+      mappingChipsData[i].letter = txt.trim();
+      const combined = mappingChipsData.map(b => b.letter).join('');
+      document.getElementById('assembledMappedWordBadge').innerText = combined || '...';
+    }
+
+    function addMappingBox() {
+      if (mappingChipsData.length < 6) {
+        mappingChipsData.push({ chip: null, letter: '' });
+        renderMappingBoard();
+      }
+    }
+
+    function removeMappingBox() {
+      if (mappingChipsData.length > 2) {
+        mappingChipsData.pop();
+        renderMappingBoard();
+      }
+    }
+
+    function resetMappingBoard() {
+      mappingChipsData = [
+        { chip: null, letter: '' },
+        { chip: null, letter: '' },
+        { chip: null, letter: '' }
+      ];
+      renderMappingBoard();
+    }
+
+    function tapAudioSoundCount(num, btn) {
+      triggerSpeechSynthesis(`${num}`);
+      btn.classList.add('bg-indigo-600', 'text-white', 'border-indigo-600');
+      setTimeout(() => {
+        btn.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-600');
+      }, 350);
+    }
+
+    function speakAssembledMappingWord() {
+      const word = mappingChipsData.map(b => b.letter).join('');
+      if (word) triggerSpeechSynthesis(word);
+    }
+
+    function applyMappingPreset(preset) {
+      if (preset === 'said') {
+        mappingChipsData = [
+          { chip: 'blue', letter: 's' },
+          { chip: 'heart', letter: 'ai' },
+          { chip: 'blue', letter: 'd' }
+        ];
+      } else if (preset === 'they') {
+        mappingChipsData = [
+          { chip: 'blue', letter: 'th' },
+          { chip: 'heart', letter: 'ey' }
+        ];
+      } else if (preset === 'was') {
+        mappingChipsData = [
+          { chip: 'blue', letter: 'w' },
+          { chip: 'heart', letter: 'a' },
+          { chip: 'blue', letter: 's' }
+        ];
+      } else if (preset === 'the') {
+        mappingChipsData = [
+          { chip: 'blue', letter: 'th' },
+          { chip: 'heart', letter: 'e' }
+        ];
+      } else if (preset === 'from') {
+        mappingChipsData = [
+          { chip: 'blue', letter: 'f' },
+          { chip: 'blue', letter: 'r' },
+          { chip: 'heart', letter: 'o' },
+          { chip: 'blue', letter: 'm' }
+        ];
+      } else if (preset === 'ship') {
+        mappingChipsData = [
+          { chip: 'blue', letter: 'sh' },
+          { chip: 'red', letter: 'i' },
+          { chip: 'blue', letter: 'p' }
+        ];
+      } else if (preset === 'catch') {
+        mappingChipsData = [
+          { chip: 'blue', letter: 'c' },
+          { chip: 'red', letter: 'a' },
+          { chip: 'blue', letter: 'tch' }
+        ];
+      }
+      renderMappingBoard();
+    }
+
+    // ========================================================
+    // 8. UFLI FOUNDATIONS BLENDING DECK (40 WORDS)
+    // ========================================================
+    const UFLI_WORD_DATA = [
+      // 1. Alphabet & CVC
+      { word: 'mat', category: 'Alphabet & CVC', lesson: 'Lesson 5: CV & CVC', p: ['m', 'a', 't'], vowels: ['a'], photo: 'https://images.unsplash.com/photo-1582533561751-ef6f6ab93a2e?w=700&auto=format&fit=crop&q=80', def: 'A rubber or fabric pad placed on the floor to step or sit upon.', prompt: 'Why do we wipe our feet on a welcome mat before entering class?' },
+      { word: 'map', category: 'Alphabet & CVC', lesson: 'Lesson 6: p /p/ (CVC)', p: ['m', 'a', 'p'], vowels: ['a'], photo: 'https://images.unsplash.com/photo-1524661135-423995f22d0b?w=700&auto=format&fit=crop&q=80', def: 'A drawing or chart showing where trails, cities, and oceans are found.', prompt: 'How does an explorer use a map to find hidden landmarks?' },
+      { word: 'fin', category: 'Alphabet & CVC', lesson: 'Lesson 9: n /n/ (CVC)', p: ['f', 'i', 'n'], vowels: ['i'], photo: 'https://images.unsplash.com/photo-1524704654690-b56c05c78a00?w=700&auto=format&fit=crop&q=80', def: 'A wing-like aquatic body part used by fish to balance and steer.', prompt: 'How does a fish paddle its fins to glide smoothly through water?' },
+      { word: 'mop', category: 'Alphabet & CVC', lesson: 'Lesson 12: o /ŏ/ (CVC)', p: ['m', 'o', 'p'], vowels: ['o'], photo: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=700&auto=format&fit=crop&q=80', def: 'A cleaning stick with yarn or sponge used to wipe floors with warm water.', prompt: 'When is it helpful to grab a mop after an accidental drink spill?' },
+      { word: 'dot', category: 'Alphabet & CVC', lesson: 'Lesson 13: d /d/ (CVC)', p: ['d', 'o', 't'], vowels: ['o'], photo: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=700&auto=format&fit=crop&q=80', def: 'A tiny round mark made by a pencil tip or marker.', prompt: 'Where do we place a dot when writing lowercase letters i and j?' },
+      { word: 'cap', category: 'Alphabet & CVC', lesson: 'Lesson 14: c /k/ (CVC)', p: ['c', 'a', 'p'], vowels: ['a'], photo: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=700&auto=format&fit=crop&q=80', def: 'A close-fitting hat with a bill that keeps sunlight out of eyes.', prompt: 'When do you choose to wear a baseball cap outside?' },
+      { word: 'sun', category: 'Alphabet & CVC', lesson: 'Lesson 15: u /ŭ/ (CVC)', p: ['s', 'u', 'n'], vowels: ['u'], photo: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=700&auto=format&fit=crop&q=80', def: 'The bright star in our solar system that brings heat and daylight.', prompt: 'What happens to the playground when the sun warms up the morning air?' },
+      { word: 'pig', category: 'Alphabet & CVC', lesson: 'Lesson 16: g /g/ (CVC)', p: ['p', 'i', 'g'], vowels: ['i'], photo: 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=700&auto=format&fit=crop&q=80', def: 'A friendly farm animal with a snout and a curly tail.', prompt: 'Why do farm pigs enjoy rolling in mud on a sunny day?' },
+      { word: 'net', category: 'Alphabet & CVC', lesson: 'Lesson 19: VC & CVC', p: ['n', 'e', 't'], vowels: ['e'], photo: 'https://images.unsplash.com/photo-1516214104703-d870798883c5?w=700&auto=format&fit=crop&q=80', def: 'A woven mesh tool used for catching butterflies, soccer balls, or fish.', prompt: 'Which sports use a net to score points or catch a ball?' },
+      { word: 'rug', category: 'Alphabet & CVC', lesson: 'Lesson 24: r /r/ (CVC)', p: ['r', 'u', 'g'], vowels: ['u'], photo: 'https://images.unsplash.com/photo-1600121848594-d8644e57abab?w=700&auto=format&fit=crop&q=80', def: 'A soft woven floor carpet where children sit together.', prompt: 'What do you enjoy listening to during carpet gathering time?' },
+
+      // 2. Consonants & Blends
+      { word: 'frog', category: 'Consonants & Blends', lesson: 'Lesson 25: Initial r-Blends', p: ['f', 'r', 'o', 'g'], vowels: ['o'], photo: 'https://images.unsplash.com/photo-1563281577-a7be47e20db9?w=700&auto=format&fit=crop&q=80', def: 'An amphibious pond animal that leaps and catches bugs with its tongue.', prompt: 'What sounds do frogs make when the evening stars come out?' },
+      { word: 'plug', category: 'Consonants & Blends', lesson: 'Lesson 27: Initial l-Blends', p: ['p', 'l', 'u', 'g'], vowels: ['u'], photo: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=700&auto=format&fit=crop&q=80', def: 'A connector with prongs that inserts into a wall electrical outlet.', prompt: 'Which classroom tablets need to be plugged in to charge overnight?' },
+      { word: 'web', category: 'Consonants & Blends', lesson: 'Lesson 28: w /w/', p: ['w', 'e', 'b'], vowels: ['e'], photo: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=700&auto=format&fit=crop&q=80', def: 'A silky spun trap constructed by spiders to catch flying insects.', prompt: 'What geometric patterns can you observe in a spider web?' },
+      { word: 'jet', category: 'Consonants & Blends', lesson: 'Lesson 29: j /j/', p: ['j', 'e', 't'], vowels: ['e'], photo: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=700&auto=format&fit=crop&q=80', def: 'A high-speed airplane driven by jet engines through the clouds.', prompt: 'Where would you like to travel if you boarded a swift jet plane?' },
+      { word: 'fox', category: 'Consonants & Blends', lesson: 'Lesson 31: x /ks/', p: ['f', 'o', 'x'], vowels: ['o'], photo: 'https://images.unsplash.com/photo-1516934024742-b461fba47600?w=700&auto=format&fit=crop&q=80', def: 'A clever reddish forest animal with pointed ears and a bushy tail.', prompt: 'How does a fox sneak quietly over crunchy autumn forest leaves?' },
+      { word: 'van', category: 'Consonants & Blends', lesson: 'Lesson 33: v /v/', p: ['v', 'a', 'n'], vowels: ['a'], photo: 'https://images.unsplash.com/photo-1527786356703-4b100091cd2c?w=700&auto=format&fit=crop&q=80', def: 'A multi-passenger vehicle with sliding doors for road trips.', prompt: 'When might your family load luggage into a travel van?' },
+      { word: 'pan', category: 'Consonants & Blends', lesson: 'Lesson 35: Short A Review', p: ['p', 'a', 'n'], vowels: ['a'], photo: 'https://images.unsplash.com/photo-1584990347449-399b1a5113fa?w=700&auto=format&fit=crop&q=80', def: 'A shallow metal cooking container with a long heatproof handle.', prompt: 'What delicious morning pancakes can be flipped in a skillet pan?' },
+      { word: 'drum', category: 'Consonants & Blends', lesson: 'Lesson 39: Short U Review', p: ['d', 'r', 'u', 'm'], vowels: ['u'], photo: 'https://images.unsplash.com/photo-1519892300165-cb5542fb47c7?w=700&auto=format&fit=crop&q=80', def: 'A percussion instrument played by tapping rhythm with wooden sticks.', prompt: 'Can you tap a steady walking beat like a drummer in a parade?' },
+      { word: 'sled', category: 'Consonants & Blends', lesson: 'Lesson 41: Short Vowels Review', p: ['s', 'l', 'e', 'd'], vowels: ['e'], photo: 'https://images.unsplash.com/photo-1548777123-e216912df7d8?w=700&auto=format&fit=crop&q=80', def: 'A vehicle with smooth runners made for gliding down snowy hills.', prompt: 'What warm gear do you wear when sledding down a snowy hill?' },
+      { word: 'camp', category: 'Consonants & Blends', lesson: 'Lesson 41: Short Vowels Review', p: ['c', 'a', 'm', 'p'], vowels: ['a'], photo: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=700&auto=format&fit=crop&q=80', def: 'An outdoor place where campers sleep in tents under twinkling stars.', prompt: 'What sounds might you hear while camping in the pine forest?' },
+
+      // 3. FLSZ & Digraphs
+      { word: 'bell', category: 'FLSZ & Digraphs', lesson: 'Lesson 42: FLSZ Spelling Rule', p: ['b', 'e', 'll'], vowels: ['e'], photo: 'https://images.unsplash.com/photo-1513297887119-d46091b24bfa?w=700&auto=format&fit=crop&q=80', def: 'A metal chime that rings when struck by a clapper.', prompt: 'What signals does the school morning bell announce to students?' },
+      { word: 'ship', category: 'FLSZ & Digraphs', lesson: 'Lesson 45: Digraph sh', p: ['sh', 'i', 'p'], vowels: ['i'], photo: 'https://images.unsplash.com/photo-1505705694340-019e1e335916?w=700&auto=format&fit=crop&q=80', def: 'A large ocean-going vessel that navigates waterways.', prompt: 'What would you see standing on the windy deck of a ship?' },
+      { word: 'fish', category: 'FLSZ & Digraphs', lesson: 'Lesson 45: Digraph sh', p: ['f', 'i', 'sh'], vowels: ['i'], photo: 'https://images.unsplash.com/photo-1524704654690-b56c05c78a00?w=700&auto=format&fit=crop&q=80', def: 'A creature with scales and gills living in ocean or lake waters.', prompt: 'What colorful tropical fish have you seen swimming in an aquarium?' },
+      { word: 'math', category: 'FLSZ & Digraphs', lesson: 'Lesson 47: Unvoiced th', p: ['m', 'a', 'th'], vowels: ['a'], photo: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?w=700&auto=format&fit=crop&q=80', def: 'The exploration of numbers, counting, shapes, and patterns.', prompt: 'How does math help us share snacks and build blocks with friends?' },
+      { word: 'chin', category: 'FLSZ & Digraphs', lesson: 'Lesson 48: Digraph ch', p: ['ch', 'i', 'n'], vowels: ['i'], photo: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=700&auto=format&fit=crop&q=80', def: 'The lowest part of the face directly below the bottom lip.', prompt: 'Can you gently touch your chin when saying the sound /ch/?' },
+      { word: 'graph', category: 'FLSZ & Digraphs', lesson: 'Lesson 50: ph /f/', p: ['g', 'r', 'a', 'ph'], vowels: ['a'], photo: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=700&auto=format&fit=crop&q=80', def: 'A visual chart that displays quantities using bars or lines.', prompt: 'What classroom survey could we organize onto a colorful bar graph?' },
+      { word: 'ring', category: 'FLSZ & Digraphs', lesson: 'Lesson 51: Digraph ng', p: ['r', 'i', 'ng'], vowels: ['i'], photo: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=700&auto=format&fit=crop&q=80', def: 'A circular band of gold or silver worn on a finger.', prompt: 'Why do family members wear special rings on their fingers?' },
+      { word: 'bank', category: 'FLSZ & Digraphs', lesson: 'Lesson 52: nk /ŋk/', p: ['b', 'a', 'nk'], vowels: ['a'], photo: 'https://images.unsplash.com/photo-1501167786227-4cba60f6d58f?w=700&auto=format&fit=crop&q=80', def: 'A secure financial building where people save coins and money.', prompt: 'What are you saving up coins for in your piggy bank?' },
+
+      // 4. VCe Patterns
+      { word: 'lake', category: 'VCe Patterns', lesson: 'Lesson 54: a_e /ā/', p: ['l', 'a', 'k', 'e'], vowels: ['a'], photo: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=700&auto=format&fit=crop&q=80', def: 'A tranquil body of freshwater bounded by mountains and forest.', prompt: 'What water birds make their nests near a calm mountain lake?' },
+      { word: 'bite', category: 'VCe Patterns', lesson: 'Lesson 55: i_e /ī/', p: ['b', 'i', 't', 'e'], vowels: ['i'], photo: 'https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=700&auto=format&fit=crop&q=80', def: 'To grip or chew food using upper and lower teeth.', prompt: 'How does a crisp red apple sound when taking a juicy bite?' },
+      { word: 'home', category: 'VCe Patterns', lesson: 'Lesson 56: o_e /ō/', p: ['h', 'o', 'm', 'e'], vowels: ['o'], photo: 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=700&auto=format&fit=crop&q=80', def: 'A safe, cozy place where a family or animal lives together.', prompt: 'What makes your home feel welcoming after a long school day?' },
+      { word: 'rope', category: 'VCe Patterns', lesson: 'Lesson 56: o_e /ō/', p: ['r', 'o', 'p', 'e'], vowels: ['o'], photo: 'https://images.unsplash.com/photo-1516214104703-d870798883c5?w=700&auto=format&fit=crop&q=80', def: 'A thick, flexible cord made of twisted hemp fibers.', prompt: 'How do climbers use strong ropes for mountain safety?' },
+      { word: 'stone', category: 'VCe Patterns', lesson: 'Lesson 57: VCe Review 1', p: ['s', 't', 'o', 'n', 'e'], vowels: ['o'], photo: 'https://images.unsplash.com/photo-1518457607834-6e8d80c183c5?w=700&auto=format&fit=crop&q=80', def: 'A smooth hard piece of rock shaped by nature.', prompt: 'Have you ever skipped a flat stone across a calm body of water?' },
+      { word: 'tube', category: 'VCe Patterns', lesson: 'Lesson 58: u_e /ū/', p: ['t', 'u', 'b', 'e'], vowels: ['u'], photo: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=700&auto=format&fit=crop&q=80', def: 'A long hollow cylindrical container used to squeeze paste or liquids.', prompt: 'What morning supplies, like minty toothpaste, come in a squeeze tube?' },
+
+      // 5. R-Controlled
+      { word: 'car', category: 'R-Controlled', lesson: 'Lesson 77: ar /ar/', p: ['c', 'ar'], vowels: ['ar'], photo: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=700&auto=format&fit=crop&q=80', def: 'A four-wheeled motorized vehicle for carrying passengers on roads.', prompt: 'What scenery do you observe out the car window on a road trip?' },
+      { word: 'girl', category: 'R-Controlled', lesson: 'Lesson 81: ir /er/', p: ['g', 'ir', 'l'], vowels: ['ir'], photo: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=700&auto=format&fit=crop&q=80', def: 'A female child or student learner.', prompt: 'What is a kind greeting to invite someone into a recess playground game?' },
+      { word: 'shark', category: 'R-Controlled', lesson: 'Lesson 83: R-Controlled Review', p: ['sh', 'ar', 'k'], vowels: ['ar'], photo: 'https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=700&auto=format&fit=crop&q=80', def: 'A swift ocean creature with a triangular dorsal fin and sharp teeth.', prompt: 'How does a shark use its tail fin to swim smoothly through waves?' },
+
+      // 6. Vowel Teams
+      { word: 'rain', category: 'Vowel Teams', lesson: 'Lesson 84: ai /ā/', p: ['r', 'ai', 'n'], vowels: ['ai'], photo: 'https://images.unsplash.com/photo-1534274988757-a28bf1a57c17?w=700&auto=format&fit=crop&q=80', def: 'Fresh water drops falling from sky clouds onto grass and trees.', prompt: 'How does gentle spring rain help seeds sprout into flowers?' },
+      { word: 'play', category: 'Vowel Teams', lesson: 'Lesson 84: ay /ā/', p: ['p', 'l', 'ay'], vowels: ['ay'], photo: 'https://images.unsplash.com/photo-1472162072942-cd5147eb3902?w=700&auto=format&fit=crop&q=80', def: 'To take part in games and fun activities with friends.', prompt: 'What playground games do you and your peers enjoy during recess?' },
+      { word: 'feet', category: 'Vowel Teams', lesson: 'Lesson 85: ee /ē/', p: ['f', 'ee', 't'], vowels: ['ee'], photo: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=700&auto=format&fit=crop&q=80', def: 'The lower body parts that enable walking, balancing, and jumping.', prompt: 'How do our feet help us balance when hopping on one foot?' },
+      { word: 'road', category: 'Vowel Teams', lesson: 'Lesson 86: oa /ō/', p: ['r', 'oa', 'd'], vowels: ['oa'], photo: 'https://images.unsplash.com/photo-1508873696983-2df5293cb325?w=700&auto=format&fit=crop&q=80', def: 'A paved path built for cars, school buses, and bicycles to travel upon.', prompt: 'What street signs tell drivers to slow down near a school crossing?' },
+      { word: 'pie', category: 'Vowel Teams', lesson: 'Lesson 87: ie /ī/', p: ['p', 'ie'], vowels: ['ie'], photo: 'https://images.unsplash.com/photo-1519915028121-7d346b420b13?w=700&auto=format&fit=crop&q=80', def: 'A baked pastry pie crust with sweet spiced apple or berry filling.', prompt: 'What kind of fruit pie do you enjoy celebrating holidays with?' },
+      { word: 'boy', category: 'Vowel Teams', lesson: 'Lesson 95: oy /oi/', p: ['b', 'oy'], vowels: ['oy'], photo: 'https://images.unsplash.com/photo-1485546246426-74dc88dec4d9?w=700&auto=format&fit=crop&q=80', def: 'A male child or young lad.', prompt: 'What fun outdoor adventures do you look forward to this weekend?' }
+    ];
+
+    let activeFilterCategory = 'all';
+    let filteredDeckList = [...UFLI_WORD_DATA];
+    let currentDeckCursor = 0;
+
+    function filterBlendingBank(cat) {
+      activeFilterCategory = cat;
+      if (cat === 'all') {
+        filteredDeckList = [...UFLI_WORD_DATA];
+      } else {
+        filteredDeckList = UFLI_WORD_DATA.filter(w => w.category === cat);
+      }
+      currentDeckCursor = 0;
+      renderBlendingCardView();
+    }
+
+    function renderBlendingCardView() {
+      if (!filteredDeckList.length) return;
+      const cur = filteredDeckList[currentDeckCursor];
+
+      document.getElementById('blendingCurLesson').innerText = cur.lesson;
+      document.getElementById('blendingCurProgress').innerText = `${currentDeckCursor + 1} of ${filteredDeckList.length}`;
+
+      const cardContainer = document.getElementById('blendingCardsContainer');
+      cardContainer.innerHTML = '';
+
+      cur.p.forEach(phoneme => {
+        const isVowelTeam = ['ai', 'ay', 'ee', 'ea', 'oa', 'ow', 'ie', 'igh', 'oi', 'oy'].includes(phoneme.toLowerCase());
+        const isRControlled = ['ar', 'or', 'er', 'ir', 'ur'].includes(phoneme.toLowerCase());
+        const isVowel = cur.vowels.includes(phoneme.toLowerCase()) || isVowelTeam || isRControlled;
+
+        let borderClass = 'border-blue-500 text-blue-700';
+        let dotClass = 'bg-blue-500';
+
+        if (isVowelTeam) {
+          borderClass = 'border-purple-500 text-purple-700';
+          dotClass = 'bg-purple-500';
+        } else if (isVowel) {
+          borderClass = 'border-rose-500 text-rose-700';
+          dotClass = 'bg-rose-500';
+        }
+
+        const card = document.createElement('div');
+        card.className = `w-24 h-36 sm:w-28 sm:h-44 bg-white border-4 ${borderClass} rounded-3xl shadow-lg flex flex-col items-center justify-center p-2 transform transition-transform hover:-translate-y-1 tablet-touch-btn cursor-pointer`;
+        card.onclick = () => triggerSpeechSynthesis(phoneme);
+
+        card.innerHTML = `
+          <div class="text-4xl sm:text-5xl font-black font-sans leading-none uppercase">${phoneme}</div>
+          <div class="w-3.5 h-3.5 rounded-full ${dotClass} mt-3 shadow-sm"></div>
+        `;
+        cardContainer.appendChild(card);
+      });
+    }
+
+    function shiftBlendingWord(dir) {
+      currentDeckCursor = (currentDeckCursor + dir + filteredDeckList.length) % filteredDeckList.length;
+      renderBlendingCardView();
+    }
+
+    function executeCarSweep() {
+      const car = document.getElementById('blendingCar');
+      const track = car.parentElement;
+      const distance = Math.max(260, track.offsetWidth - car.offsetWidth - 20);
+
+      car.style.transform = `translateX(${distance}px)`;
+      const cur = filteredDeckList[currentDeckCursor];
+      if (cur) {
+        setTimeout(() => triggerSpeechSynthesis(cur.word, 0.75), 450);
+      }
+
+      setTimeout(() => {
+        car.style.transform = 'translateX(0px)';
+      }, 1400);
+    }
+
+    function speakCurrentPhonemesAndWord() {
+      const cur = filteredDeckList[currentDeckCursor];
+      if (!cur) return;
+      const phonemeSeq = cur.p.join(' ... ');
+      triggerSpeechSynthesis(`${phonemeSeq} ... ${cur.word}`, 0.7);
+    }
+
+    function showConcreteVocabModal() {
+      const cur = filteredDeckList[currentDeckCursor];
+      if (!cur) return;
+
+      document.getElementById('vocabModalImg').src = cur.photo;
+      document.getElementById('vocabModalWordHeader').innerText = cur.word;
+      document.getElementById('vocabModalCatBadge').innerText = cur.category;
+      document.getElementById('vocabModalDefText').innerText = cur.def;
+      document.getElementById('vocabModalPromptText').innerText = `"${cur.prompt}"`;
+
+      document.getElementById('vocabModalBackdrop').classList.remove('hidden');
+      document.getElementById('vocabModalBackdrop').classList.add('flex');
+    }
+
+    function hideConcreteVocabModal(e) {
+      if (e && e.target !== e.currentTarget && e.target.tagName !== 'BUTTON') return;
+      document.getElementById('vocabModalBackdrop').classList.add('hidden');
+      document.getElementById('vocabModalBackdrop').classList.remove('flex');
+    }
+
+    function speakVocabTurnTalkPrompt() {
+      const cur = filteredDeckList[currentDeckCursor];
+      if (cur) triggerSpeechSynthesis(cur.prompt, 0.9);
+    }
+
+    function handleVocabImgFallback(img) {
+      img.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="300" viewBox="0 0 600 300"><rect fill="%23eef2ff" width="600" height="300"/><text fill="%234f46e5" font-family="sans-serif" font-size="28" font-weight="bold" x="50%" y="45%" text-anchor="middle">Vocabulary Connection</text><text fill="%2364748b" font-family="sans-serif" font-size="18" x="50%" y="60%" text-anchor="middle">Ready for Oral Language Discussion</text></svg>';
+    }
+
+    // ========================================================
+    // APP INITIALIZATION
+    // ========================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      resizeCanvasElement();
+      renderBaseTenDisplay();
+      renderTenFrameElements();
+      renderMappingBoard();
+      renderBlendingCardView();
+    });
+
+    window.addEventListener('resize', resizeCanvasElement);
+    window.addEventListener('orientationchange', () => {
+      setTimeout(resizeCanvasElement, 150);
+    });
+  </script>
+</body>
+</html>
